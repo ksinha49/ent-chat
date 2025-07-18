@@ -42,6 +42,19 @@ create a Python virtual environment in `packages/backend/.venv` if needed:
 The scripts launch the backend on port `8000` and the frontend on
 `http://localhost:3000`.
 
+### Docker Compose
+
+You can also run the application using Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+The compose file defines a named volume `memory-data` that stores the
+SQLite database used for long-term memory at `/app/memory` inside the
+backend container. The volume preserves conversation history across
+container restarts.
+
 ## Configuration
 
 Copy `.env.example` to `.env` and provide values for the following settings:
