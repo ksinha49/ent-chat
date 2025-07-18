@@ -54,6 +54,7 @@ backend requires AWS Bedrock and ABACUS settings:
 - `BEDROCK_API_BASE` and `BEDROCK_API_KEY`
 - `BEDROCK_MODEL_ID`
 - `ABACUS_BASE_URL` and `ABACUS_CLIENT_SECRET`
+- `VERIFY_SSL` (set to `false` to allow self-signed certificates)
 
 The service exposes a POST `/ask` endpoint used by the frontend to retrieve
 answers. Point the frontend to the backend by setting `NEXT_PUBLIC_API_URL`
