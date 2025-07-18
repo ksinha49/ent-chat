@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react"
 import { Avatar, Box, CircularProgress, Paper, Typography } from "@mui/material"
 import { fadeIn, textFadeIn } from "./animations"
+import { APP_NAME, APP_LOGO } from "@/lib/config"
 
 export default function ProcessingIndicator() {
   const statuses = [
@@ -50,8 +51,8 @@ export default function ProcessingIndicator() {
         }}
       >
         <img
-          src="/images/ameritas-logo.png"
-          alt="ABACUS"
+          src={APP_LOGO}
+          alt={APP_NAME}
           style={{ width: "70%", height: "70%", objectFit: "contain" }}
         />
       </Avatar>

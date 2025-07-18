@@ -2,28 +2,40 @@
 
 from __future__ import annotations
 
-import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import requests
+
+from env import settings
 
 
 class BedrockAdapter:
     """HTTP adapter for AWS Bedrock using the OpenAI chat format."""
 
-    def __init__(self) -> None:
-        self.api_base = os.getenv("BEDROCK_API_BASE", "").rstrip("/")
-        self.api_key = os.getenv("BEDROCK_API_KEY", "")
-        self.model_id = os.getenv("BEDROCK_MODEL_ID", "")
-        self.timeout = int(os.getenv("BEDROCK_TIMEOUT", "15"))
-        self.max_tokens = int(os.getenv("BEDROCK_MAX_TOKENS", "2048"))
-        self.temperature = float(os.getenv("BEDROCK_TEMPERATURE", "0.7"))
+    def __init__(
+        self,
+        api_base: Optional[str] = None,
+        api_key: Optional[str] = None,
+        model_id: Optional[str] = None,
+        timeout: Optional[int] = None,
+        max_tokens: Optional[int] = None,
+        temperature: Optional[float] = None,
+        verify_ssl: Optional[bool] = None,
+    ) -> None:
+        self.api_base = (api_base or settings.BEDROCK_API_BASE).rstrip("/")
+        self.api_key = api_key or settings.BEDROCK_API_KEY
+        self.model_id = model_id or settings.BEDROCK_MODEL_ID
+        self.timeout = timeout if timeout is not None else settings.BEDROCK_TIMEOUT
+        self.max_tokens = (
+            max_tokens if max_tokens is not None else settings.BEDROCK_MAX_TOKENS
+        )
+        self.temperature = (
+            temperature if temperature is not None else settings.BEDROCK_TEMPERATURE
+        )
         # Honor VERIFY_SSL=false to allow self-signed certificates during development
-        self.verify_ssl = os.getenv("VERIFY_SSL", "true").lower() not in {
-            "0",
-            "false",
-            "no",
-        }
+        self.verify_ssl = (
+            verify_ssl if verify_ssl is not None else settings.VERIFY_SSL
+        )
 
         self._headers = {
             "Authorization": f"Bearer {self.api_key}",

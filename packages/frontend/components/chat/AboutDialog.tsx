@@ -11,6 +11,7 @@ import {
 } from "@mui/material"
 import type { TransitionProps } from "@mui/material/transitions"
 import type { ReactElement } from "react"
+import { APP_NAME } from "@/lib/config"
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & { children: ReactElement<any, any> },
@@ -27,10 +28,10 @@ interface Props {
 export default function AboutDialog({ open, onClose }: Props) {
   return (
     <Dialog open={open} onClose={onClose} TransitionComponent={Transition} keepMounted>
-      <DialogTitle>About ABACUS</DialogTitle>
+      <DialogTitle>About {APP_NAME}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          ABACUS is an intelligent assistant designed to help you navigate the Ameritas technology landscape. Query
+          {APP_NAME} is an intelligent assistant designed to help you navigate the Ameritas technology landscape. Query
           our repository for information on approved technologies, standards, and best practices.
         </DialogContentText>
       </DialogContent>

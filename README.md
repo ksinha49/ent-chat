@@ -60,6 +60,11 @@ backend requires AWS Bedrock and ABACUS settings:
 The service exposes a POST `/ask` endpoint used by the frontend to retrieve
 answers. Point the frontend to the backend by setting `NEXT_PUBLIC_API_URL`
 in `packages/frontend/.env` (see `packages/frontend/.env.example`).
+Additional optional settings let you customize the application name and logo:
+
+- `APP_NAME` and `NEXT_PUBLIC_APP_NAME`
+- `APP_LOGO` and `NEXT_PUBLIC_APP_LOGO`
+- `ALLOWED_ORIGINS` for CORS configuration
 
 ## How It Works
 

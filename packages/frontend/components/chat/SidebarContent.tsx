@@ -14,6 +14,7 @@ import {
 } from "@mui/material"
 import { Add, PersonOutline, History, InfoOutlined } from "@mui/icons-material"
 import { fadeIn } from "./animations"
+import { APP_NAME, APP_LOGO } from "@/lib/config"
 
 interface Props {
   queryHistory: { id: string; content: string }[]
@@ -62,18 +63,20 @@ export default function SidebarContent({
           }}
         >
           {logoFailedToLoad ? (
-            <span style={{ color: "white", fontWeight: "bold", fontSize: 14 }}>A</span>
+            <span style={{ color: "white", fontWeight: "bold", fontSize: 14 }}>
+              {APP_NAME.charAt(0)}
+            </span>
           ) : (
             <img
-              src="/images/ameritas-logo.png"
-              alt="ABACUS Logo"
+              src={APP_LOGO}
+              alt={`${APP_NAME} Logo`}
               style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
               onError={() => setLogoFailedToLoad(true)}
             />
           )}
         </Box>
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          ABACUS
+          {APP_NAME}
         </Typography>
       </Box>
 
