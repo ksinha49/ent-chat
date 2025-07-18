@@ -68,18 +68,32 @@ class BedrockAdapter:
     # ------------------------------------------------------------------
     # Public API used by the orchestrator
 
+    def create(
+        self,
+        model: Optional[str],
+        messages: List[Dict[str, str]],
+        *,
+        max_tokens: Optional[int] = None,
+        temperature: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Return a response dict in the OpenAI chat format."""
+
+        payload = {
+            "model": model or self.model_id,
+            "messages": messages,
+            "max_tokens": max_tokens if max_tokens is not None else self.max_tokens,
+            "temperature": (
+                temperature if temperature is not None else self.temperature
+            ),
+        }
+
+        return self._request(payload)
+
     def invoke(self, prompt: str) -> str:
         """Send ``prompt`` and return the model's completion text."""
 
         messages: List[Dict[str, str]] = [{"role": "user", "content": prompt}]
-        payload = {
-            "model": self.model_id,
-            "messages": messages,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-        }
-
-        data = self._request(payload)
+        data = self.create(self.model_id, messages)
         try:
             return data["choices"][0]["message"]["content"]
         except (KeyError, IndexError) as exc:
