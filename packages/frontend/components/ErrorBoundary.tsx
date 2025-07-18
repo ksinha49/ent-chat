@@ -1,5 +1,6 @@
 import React from "react"
 import { Box, Typography } from "@mui/material"
+import { logger } from "@/lib/logger"
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
@@ -24,7 +25,7 @@ export default class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("ErrorBoundary caught an error", error, errorInfo)
+    logger.error("ErrorBoundary caught an error", { error, errorInfo })
   }
 
   render() {
