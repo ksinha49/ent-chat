@@ -125,9 +125,9 @@ class Orchestrator:
                 print(f"Failed to load vector store: {exc}. Rebuilding index.")
 
         if not index_loaded:
-            # Fallback: load data and build the index, persisting it for later use.
-            self.capabilities = self._load_capabilities()
-            self.applications = self._load_applications()
+            # Fallback: fetch data and build the index, persisting it for later use.
+            self.capabilities = self.client.query_data("capabilities")
+            self.applications = self.client.query_data("applications")
             texts = [
                 e.get("description", "")
                 for e in self.capabilities + self.applications
@@ -159,17 +159,6 @@ class Orchestrator:
 
         self.__class__._initialized = True
 
-    def _load_capabilities(self) -> List[Dict[str, str]]:
-        """Load technology capabilities from the JSON catalog."""
-        path = Path(__file__).with_name("technology_capabilities.json")
-        if not path.exists():
-            return []
-        with path.open("r", encoding="utf-8") as fh:
-            records = json.load(fh)
-            if isinstance(records, list):
-                return records
-        return []
-
     def _build_capability_index(
         self, capabilities: List[Dict[str, str]]
     ) -> Tuple[faiss.Index, List[str]]:
@@ -185,17 +174,6 @@ class Orchestrator:
 
     # ------------------------------------------------------------------
     # Application catalog utilities
-
-    def _load_applications(self) -> List[Dict[str, str]]:
-        """Load application records from the JSON catalog."""
-        path = Path(__file__).with_name("applications.json")
-        if not path.exists():
-            return []
-        with path.open("r", encoding="utf-8") as fh:
-            records = json.load(fh)
-            if isinstance(records, list):
-                return records
-        return []
 
     def _build_application_index(
         self, applications: List[Dict[str, str]]
