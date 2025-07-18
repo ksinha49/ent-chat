@@ -37,6 +37,7 @@ required values:
 
 - `BEDROCK_API_BASE`, `BEDROCK_API_KEY`, and `BEDROCK_MODEL_ID`
 - `ABACUS_BASE_URL` and `ABACUS_CLIENT_SECRET`
+- `VERIFY_SSL` (set to `false` to allow self-signed certificates)
 
 These settings allow the service to call AWS Bedrock and the ABACUS API.
 

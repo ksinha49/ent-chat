@@ -6,10 +6,6 @@ import os
 from typing import Any, Dict
 
 import requests
-import urllib3
-
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class AbacusClient:
@@ -19,6 +15,12 @@ class AbacusClient:
         self.base_url = os.getenv("ABACUS_BASE_URL", "").rstrip("/")
         self.client_secret = os.getenv("ABACUS_CLIENT_SECRET", "")
         self.timeout = int(os.getenv("ABACUS_TIMEOUT", "15"))
+        # Honor VERIFY_SSL=false to allow self-signed certificates during development
+        self.verify_ssl = os.getenv("VERIFY_SSL", "true").lower() not in {
+            "0",
+            "false",
+            "no",
+        }
 
         self._headers = {
             "Authorization": f"Bearer {self.client_secret}",
@@ -39,7 +41,7 @@ class AbacusClient:
                 headers=self._headers,
                 json=payload,
                 timeout=self.timeout,
-                verify=False,  # ABACUS may use self-signed certs
+                verify=self.verify_ssl,
             )
             response.raise_for_status()
             return response.json()

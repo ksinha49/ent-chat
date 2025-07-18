@@ -6,10 +6,6 @@ import os
 from typing import Any, Dict, List
 
 import requests
-import urllib3
-
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class BedrockAdapter:
@@ -22,6 +18,12 @@ class BedrockAdapter:
         self.timeout = int(os.getenv("BEDROCK_TIMEOUT", "15"))
         self.max_tokens = int(os.getenv("BEDROCK_MAX_TOKENS", "2048"))
         self.temperature = float(os.getenv("BEDROCK_TEMPERATURE", "0.7"))
+        # Honor VERIFY_SSL=false to allow self-signed certificates during development
+        self.verify_ssl = os.getenv("VERIFY_SSL", "true").lower() not in {
+            "0",
+            "false",
+            "no",
+        }
 
         self._headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -42,7 +44,7 @@ class BedrockAdapter:
                 headers=self._headers,
                 json=payload,
                 timeout=self.timeout,
-                verify=False,  # custom endpoints may use self-signed certs
+                verify=self.verify_ssl,
             )
             response.raise_for_status()
             return response.json()
