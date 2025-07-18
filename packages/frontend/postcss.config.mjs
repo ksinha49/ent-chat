@@ -4,6 +4,7 @@ const config = {
     tailwindcss: {
       config: "../../tailwind.config.ts",
     },
+    autoprefixer: {},
   },
 };
 
