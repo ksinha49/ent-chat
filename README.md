@@ -27,6 +27,7 @@ Continue building your app on:
   (backend URL configurable with `NEXT_PUBLIC_API_URL`)
 - Suggested prompts loaded from `public/prompts.json`
 - FAQ section available at `/faq`
+- Includes prebuilt UI components from the Shadcn library without using the CLI
 
 ## Local development
 
