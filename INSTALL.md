@@ -8,6 +8,11 @@ This document describes how to set up the frontend and backend for local develop
 - **Python 3.10+** for the FastAPI backend
 - Optional: Docker and Docker Compose for containerized runs
 
+If your organization routes traffic through a proxy, set `HTTP_PROXY`,
+`HTTPS_PROXY`, and optionally `NO_PROXY` in your environment or `.env` file
+before running the setup commands. The backend bypasses these variables when
+contacting Bedrock so calls to AWS are direct.
+
 ## Frontend setup
 
 ```bash

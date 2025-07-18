@@ -84,6 +84,14 @@ Copy `.env.example` to `.env` and provide values for the following settings:
 - `NEXT_PUBLIC_API_URL` – URL of the backend for the frontend to call
 - Optional: `APP_NAME`, `APP_LOGO`, `ALLOWED_ORIGINS`, and `LONG_TERM_PATH`
 
+### Proxy configuration
+
+If your environment requires an HTTP proxy, set the standard `HTTP_PROXY`,
+`HTTPS_PROXY`, and `NO_PROXY` variables in your `.env` file. Docker Compose and
+the local deployment script will pass these values to both the frontend and
+backend services. Bedrock requests ignore these variables so traffic to AWS is
+direct.
+
 ## Features
 
 - Suggested prompts loaded from `public/prompts.json`

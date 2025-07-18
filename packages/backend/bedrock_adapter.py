@@ -57,6 +57,9 @@ class BedrockAdapter:
                 json=payload,
                 timeout=self.timeout,
                 verify=self.verify_ssl,
+                # Explicitly disable proxies so Bedrock calls bypass any
+                # HTTP_PROXY/HTTPS_PROXY environment settings.
+                proxies={"http": None, "https": None},
             )
             response.raise_for_status()
             return response.json()
