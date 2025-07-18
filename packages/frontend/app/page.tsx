@@ -5,14 +5,9 @@ import { useChat } from "@ai-sdk/react"
 
 import {
   AppBar,
-  Avatar,
   Box,
   Button,
-  CircularProgress,
-  Drawer,
   IconButton,
-  Paper,
-  TextField,
   Toolbar,
   Typography,
   useMediaQuery,
@@ -23,21 +18,13 @@ import {
   DialogContentText,
   DialogActions,
   Slide,
-  Grid,
 } from "@mui/material"
-import {
-  Menu as MenuIcon,
-  Add,
-  AutoAwesome,
-  HelpOutline,
-} from "@mui/icons-material"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { Menu as MenuIcon, HelpOutline } from "@mui/icons-material"
 import type { TransitionProps } from "@mui/material/transitions"
-import SidebarContent from "@/components/chat/SidebarContent"
-import ProcessingIndicator from "@/components/chat/ProcessingIndicator"
-import ErrorMessage from "@/components/chat/ErrorMessage"
-import { fadeIn } from "@/components/chat/animations"
+import Sidebar from "@/components/chat/Sidebar"
+import ChatMessages from "@/components/chat/ChatMessages"
+import WelcomeScreen from "@/components/chat/WelcomeScreen"
+import ChatInputForm from "@/components/chat/ChatInputForm"
 
 /* ------------- Slide transition that always keeps node mounted -------- */
 
@@ -154,27 +141,16 @@ export default function Chat() {
   return (
     <Box sx={{ display: "flex", height: "100vh", width: "100vw", bgcolor: "var(--background)" }}>
       {/* SIDE BAR / DRAWER */}
-      {!isMobile && (
-        <Box
-          component="aside"
-          sx={{
-            width: 280,
-            flexShrink: 0,
-            bgcolor: "#2c3e50",
-            boxShadow: "5px 0px 15px rgba(0,0,0,0.1)",
-            zIndex: 1,
-          }}
-        >
-          <SidebarContent />
-        </Box>
-      )}
-      {isMobile && (
-        <Drawer anchor="left" open={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
-          <Box sx={{ width: 280, bgcolor: "#2c3e50", height: "100%" }}>
-            <SidebarContent />
-          </Box>
-        </Drawer>
-      )}
+      <Sidebar
+        isMobile={isMobile}
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
+        queryHistory={queryHistory}
+        setInput={setInput}
+        setMessages={setMessages}
+        setIsAboutDialogOpen={setIsAboutDialogOpen}
+        setUserMenuAnchorEl={setUserMenuAnchorEl}
+      />
 
       {/* MAIN */}
       <Box
@@ -245,159 +221,23 @@ export default function Chat() {
 
         {/* chat body */}
         <Box ref={chatContainerRef} sx={{ flexGrow: 1, overflowY: "auto", p: { xs: 2, md: 3 } }}>
-          {/* empty state */}
           {messages.length === 0 && !isLoading ? (
-            <Box
-              sx={{
-                animation: `${fadeIn} 0.6s ease both`,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                textAlign: "center",
-                maxWidth: 700,
-                mx: "auto",
-              }}
-            >
-              <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: "bold" }}>
-                Welcome to ABACUS
-              </Typography>
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
-                Your intelligent assistant for navigating the Ameritas technology landscape.
-              </Typography>
-
-              {/* Suggested Prompts */}
-              {suggestions.length > 0 && (
-                <Grid container spacing={2} sx={{ mt: 2, justifyContent: "center" }}>
-                  {suggestions.map((suggestion, index) => (
-                    <Grid item xs={12} sm={6} key={index}>
-                      <Paper
-                        variant="outlined"
-                        onClick={() => handleSuggestionClick(suggestion.prompt)}
-                        sx={{
-                          p: 2,
-                          textAlign: "left",
-                          cursor: "pointer",
-                          transition: "all 0.2s ease-in-out",
-                          borderRadius: 4,
-                          bgcolor: "var(--background)",
-                          boxShadow: "5px 5px 10px #d9dbde, -5px -5px 10px #ffffff",
-                          "&:hover": {
-                            boxShadow: "inset 5px 5px 10px #d9dbde, inset -5px -5px 10px #ffffff",
-                          },
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="body1">{suggestion.title}</Typography>
-                        <Add color="action" />
-                      </Paper>
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-            </Box>
+            <WelcomeScreen suggestions={suggestions} onSuggestionClick={handleSuggestionClick} />
           ) : (
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 2.5, maxWidth: "800px", mx: "auto", width: "100%" }}
-            >
-              {messages.map((m, i) => {
-                if (m.role === "system") {
-                  return <ErrorMessage key={m.id} message={m} />
-                }
-                return (
-                  <Box
-                    key={m.id}
-                    sx={{
-                      display: "flex",
-                      gap: 2,
-                      alignItems: "flex-start",
-                      animation: `${fadeIn} 0.5s ease both`,
-                      justifyContent: m.role === "user" ? "flex-end" : "flex-start",
-                    }}
-                  >
-                    {m.role !== "user" && (
-                      <Avatar
-                        sx={{
-                          bgcolor: "#D73027",
-                          color: "white",
-                          width: 40,
-                          height: 40,
-                          boxShadow: "3px 3px 7px #c8cacd, -3px -3px 7px #ffffff",
-                        }}
-                      >
-                        <img
-                          src="/images/ameritas-logo.png"
-                          alt="ABACUS"
-                          style={{
-                            width: "70%",
-                            height: "70%",
-                            objectFit: "contain",
-                          }}
-                        />
-                      </Avatar>
-                    )}
-                    <Paper
-                      sx={{
-                        p: 2,
-                        maxWidth: "80%",
-                        bgcolor: m.role === "user" ? "#00529B" : "var(--background)",
-                        color: m.role === "user" ? "white" : "text.primary",
-                        borderRadius: m.role === "user" ? "20px 20px 5px 20px" : "20px 20px 20px 5px",
-                        boxShadow: "5px 5px 10px #d9dbde, -5px -5px 10px #ffffff",
-                      }}
-                    >
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
-                    </Paper>
-                  </Box>
-                )
-              })}
-              {isLoading && <ProcessingIndicator />}
-            </Box>
+            <ChatMessages messages={messages} isLoading={isLoading} />
           )}
         </Box>
 
-        {/* INPUT BOX */}
-        <Box sx={{ p: { xs: 1, md: 2 }, bgcolor: "transparent" }}>
-          <Paper
-            component="form"
-            onSubmit={(e) => {
-              setIsProcessing(true)
-              handleSubmit(e)
-            }}
-            sx={{
-              p: 0.5,
-              display: "flex",
-              alignItems: "center",
-              borderRadius: "25px", // Pill shape
-              bgcolor: "var(--background)",
-              boxShadow: "inset 5px 5px 10px #d9dbde, inset -5px -5px 10px #ffffff",
-            }}
-          >
-            <TextField
-              fullWidth
-              variant="standard"
-              placeholder="Ask about approved technologies, versions, and usage…"
-              value={input}
-              onChange={handleInputChange}
-              multiline
-              maxRows={5}
-              disabled={isProcessing}
-              InputProps={{ disableUnderline: true, sx: { p: "10px 20px" } }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isLoading || !input.trim()}
-              sx={{ borderRadius: "20px", mr: 1 }}
-              startIcon={isProcessing ? <CircularProgress size={16} color="inherit" /> : <AutoAwesome />}
-            >
-              {isProcessing ? "..." : "Ask"}
-            </Button>
-          </Paper>
-        </Box>
+        <ChatInputForm
+          input={input}
+          onChange={handleInputChange}
+          onSubmit={(e) => {
+            setIsProcessing(true)
+            handleSubmit(e)
+          }}
+          isProcessing={isProcessing}
+          isLoading={isLoading}
+        />
 
         {/* FOOTER */}
         <Box sx={{ p: 1, textAlign: "center", bgcolor: "transparent", position: "relative" }}>
