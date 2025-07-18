@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import faiss
 from sentence_transformers import SentenceTransformer
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.llms.base import LLM
 
 from abacus_client import AbacusClient
 from bedrock_adapter import BedrockAdapter
@@ -27,6 +30,21 @@ planner_system_prompt = (
 )
 
 
+class _BedrockLLM(LLM):
+    """LangChain LLM wrapper for :class:`BedrockAdapter`."""
+
+    def __init__(self, adapter: BedrockAdapter) -> None:
+        super().__init__()
+        self.adapter = adapter
+
+    @property
+    def _llm_type(self) -> str:  # pragma: no cover - simple property
+        return "bedrock"
+
+    def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
+        return self.adapter.invoke(prompt)
+
+
 class Orchestrator:
     """Simple orchestrator placeholder."""
 
@@ -34,10 +52,13 @@ class Orchestrator:
         self.client = AbacusClient()
         self.adapter = BedrockAdapter()
 
-        # Load catalog data and build the search index.
+        # Load catalog data and build the search indices.
         self.capabilities = self._load_capabilities()
         self._vector_model = SentenceTransformer("all-MiniLM-L6-v2")
         self.index, self._id_map = self._build_capability_index(self.capabilities)
+
+        self.applications = self._load_applications()
+        self._app_index, self._app_id_map = self._build_application_index(self.applications)
 
     def _load_capabilities(self) -> List[Dict[str, str]]:
         """Load technology capabilities from the JSON catalog."""
@@ -61,6 +82,33 @@ class Orchestrator:
         if len(embeddings):
             index.add(embeddings)
         id_map = [c.get("id", "") for c in capabilities]
+        return index, id_map
+
+    # ------------------------------------------------------------------
+    # Application catalog utilities
+
+    def _load_applications(self) -> List[Dict[str, str]]:
+        """Load application records from the JSON catalog."""
+        path = Path(__file__).with_name("applications.json")
+        if not path.exists():
+            return []
+        with path.open("r", encoding="utf-8") as fh:
+            records = json.load(fh)
+            if isinstance(records, list):
+                return records
+        return []
+
+    def _build_application_index(
+        self, applications: List[Dict[str, str]]
+    ) -> Tuple[faiss.Index, List[str]]:
+        """Create a FAISS index from application descriptions."""
+        texts = [a.get("description", "") for a in applications]
+        embeddings = self._vector_model.encode(texts, convert_to_numpy=True)
+        embeddings = embeddings.astype("float32")
+        index = faiss.IndexFlatL2(embeddings.shape[1])
+        if len(embeddings):
+            index.add(embeddings)
+        id_map = [a.get("id", "") for a in applications]
         return index, id_map
 
     def run(self) -> None:
@@ -93,3 +141,49 @@ class Orchestrator:
         if indices.size > 0 and indices[0][0] < len(self._id_map):
             return self._id_map[indices[0][0]]
         return ""
+
+    # ------------------------------------------------------------------
+    # Application recommendation logic
+
+    def recommend_applications(self, capability_id: str, query: str) -> List[Dict[str, str]]:
+        """Return applications ranked for ``query`` filtered by ``capability_id``."""
+        capability = next(
+            (c for c in self.capabilities if c.get("id") == capability_id),
+            None,
+        )
+        if not capability:
+            return []
+
+        capability_name = capability.get("name", "").lower()
+        candidates = [
+            app
+            for app in self.applications
+            if capability_name in " ".join(app.get("technologies", [])).lower()
+            or capability_name in app.get("description", "").lower()
+        ]
+        if not candidates:
+            candidates = self.applications
+
+        llm = _BedrockLLM(self.adapter)
+        template = (
+            "Rank the following applications in relevance to the user query.\n"
+            "User query: {query}\nApplications:{apps}\n"
+            "Return a JSON list of application IDs ordered most to least relevant."
+        )
+        prompt = PromptTemplate.from_template(template)
+        chain = LLMChain(llm=llm, prompt=prompt)
+
+        app_text = "\n".join(
+            f"- {a['id']}: {a.get('description', '')}" for a in candidates
+        )
+        try:
+            result = chain.run(query=query, apps=app_text)
+            ranked_ids = json.loads(result)
+        except Exception:
+            ranked_ids = [a["id"] for a in candidates]
+
+        ranked = [
+            next((a for a in candidates if a.get("id") == rid), None)
+            for rid in ranked_ids
+        ]
+        return [r for r in ranked if r]
