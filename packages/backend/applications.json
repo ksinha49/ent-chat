@@ -1,0 +1,14 @@
+[
+  {
+    "id": "app1",
+    "name": "Customer Portal",
+    "description": "Public facing website for customers to view and manage accounts.",
+    "technologies": ["React", "Node.js", "AWS"]
+  },
+  {
+    "id": "app2",
+    "name": "Claims Processing",
+    "description": "Internal service for handling insurance claims.",
+    "technologies": ["Java", "Spring Boot", "Oracle DB"]
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "cap1",
+    "name": "Kubernetes",
+    "category": "container orchestration",
+    "description": "Manages containers at scale with automatic deployment and scaling."
+  },
+  {
+    "id": "cap2",
+    "name": "Docker",
+    "category": "containerization",
+    "description": "Packages applications and dependencies into portable containers."
+  },
+  {
+    "id": "cap3",
+    "name": "Amazon S3",
+    "category": "object storage",
+    "description": "Highly durable storage for static assets and backups."
+  }
+]
