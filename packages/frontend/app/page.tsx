@@ -117,7 +117,9 @@ export default function Chat() {
   }
 
   /* -------- misc ---------- */
-  const queryHistory = messages.filter((m) => m.role === "user").map((m) => m.content)
+  const queryHistory = messages
+    .filter((m) => m.role === "user")
+    .map((m) => ({ id: m.id, content: m.content }))
   const chatContainerRef = useRef<HTMLDivElement>(null)
 
   /* -------------------- effects -------------------- */

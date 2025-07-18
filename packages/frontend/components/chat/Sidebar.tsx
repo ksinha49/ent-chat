@@ -7,7 +7,7 @@ interface Props {
   isMobile: boolean
   isDrawerOpen: boolean
   setIsDrawerOpen: (open: boolean) => void
-  queryHistory: string[]
+  queryHistory: { id: string; content: string }[]
   setInput: (value: string) => void
   setMessages: React.Dispatch<any>
   setIsAboutDialogOpen: (open: boolean) => void
