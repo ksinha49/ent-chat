@@ -1,13 +1,28 @@
-"""Entry point for the backend service."""
+"""FastAPI backend service entry point."""
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from orchestrator import Orchestrator
 
+app = FastAPI()
 
-def main() -> None:
-    """Run the orchestrator."""
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/")
+def read_root() -> dict[str, str]:
+    """Health check endpoint."""
+    return {"status": "Backend running"}
+
+
+@app.post("/run")
+def run_orchestration() -> dict[str, str]:
+    """Trigger the orchestrator workflow."""
     orchestrator = Orchestrator()
     orchestrator.run()
-
-
-if __name__ == "__main__":
-    main()
+    return {"detail": "Orchestration started"}
