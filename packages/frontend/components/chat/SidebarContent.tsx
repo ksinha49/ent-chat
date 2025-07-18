@@ -16,7 +16,7 @@ import { Add, PersonOutline, History, InfoOutlined } from "@mui/icons-material"
 import { fadeIn } from "./animations"
 
 interface Props {
-  queryHistory: string[]
+  queryHistory: { id: string; content: string }[]
   setInput: (value: string) => void
   setMessages: React.Dispatch<any>
   isMobile: boolean
@@ -109,17 +109,17 @@ export default function SidebarContent({
         {queryHistory.length ? (
           <List dense>
             {[...queryHistory].reverse().map((q, i) => (
-              <Box key={i} sx={{ animation: `${fadeIn} 0.5s ease ${i * 0.05}s both` }}>
+              <Box key={q.id} sx={{ animation: `${fadeIn} 0.5s ease ${i * 0.05}s both` }}>
                 <ListItem disablePadding>
                   <ListItemButton
                     onClick={() => {
-                      setInput(q)
+                      setInput(q.content)
                       if (isMobile) setIsDrawerOpen(false)
                     }}
                     sx={{ borderRadius: 1 }}
                   >
                     <ListItemText
-                      primary={q}
+                      primary={q.content}
                       primaryTypographyProps={{
                         noWrap: true,
                         sx: { color: "#E0E0E0" }
