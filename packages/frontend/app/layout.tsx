@@ -3,16 +3,17 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import ThemeRegistry from "@/components/providers/theme-registry"
+import { APP_NAME, APP_LOGO } from "@/lib/config"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ABACUS - Ameritas",
+  title: `${APP_NAME} - Ameritas`,
   description: "An intelligent assistant for technology insights, powered by Ameritas.",
   icons: {
-    icon: "/images/ameritas-logo.png",
+    icon: APP_LOGO,
   },
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({

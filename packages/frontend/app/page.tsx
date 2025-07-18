@@ -18,6 +18,7 @@ import WelcomeScreen from "@/components/chat/WelcomeScreen"
 import ChatInputForm from "@/components/chat/ChatInputForm"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import AboutDialog from "@/components/chat/AboutDialog"
+import { APP_NAME, APP_LOGO } from "@/lib/config"
 import { useChat } from "@/hooks/use-chat"
 import { useSuggestions } from "@/hooks/use-suggestions"
 import { useChatScroll } from "@/hooks/use-chat-scroll"
@@ -112,8 +113,8 @@ export function Chat() {
                   }}
                 >
                   <img
-                    src="/images/ameritas-logo.png"
-                    alt="ABACUS Logo"
+                    src={APP_LOGO}
+                    alt={`${APP_NAME} Logo`}
                     style={{
                       maxWidth: "100%",
                       maxHeight: "100%",
@@ -128,7 +129,7 @@ export function Chat() {
                     fontWeight: "bold",
                   }}
                 >
-                  ABACUS
+                  {APP_NAME}
                 </Typography>
               </Box>
             </Toolbar>

@@ -2,12 +2,13 @@
 import { Container, Typography, Accordion, AccordionSummary, AccordionDetails, Box, Button, Paper } from "@mui/material"
 import { ExpandMore, ArrowBack } from "@mui/icons-material"
 import Link from "next/link"
+import { APP_NAME } from "@/lib/config"
 
 const faqData = [
   {
-    question: "What is ABACUS?",
+    question: `What is ${APP_NAME}?`,
     answer:
-      "ABACUS is an intelligent assistant designed to help you navigate the Ameritas technology landscape. You can ask it about approved technologies, standards, versions, and best practices.",
+      `${APP_NAME} is an intelligent assistant designed to help you navigate the Ameritas technology landscape. You can ask it about approved technologies, standards, versions, and best practices.`,
   },
   {
     question: "How do I start a new chat?",
@@ -22,7 +23,7 @@ const faqData = [
   {
     question: "Are the AI's responses always accurate?",
     answer:
-      "While ABACUS is a powerful tool, some responses may not be 100% accurate or up-to-date. It's always a good practice to verify critical information through official documentation or by consulting with a subject matter expert.",
+      `While ${APP_NAME} is a powerful tool, some responses may not be 100% accurate or up-to-date. It's always a good practice to verify critical information through official documentation or by consulting with a subject matter expert.`,
   },
   {
     question: "How do I use the suggested prompts?",
@@ -45,7 +46,7 @@ export default function FaqPage() {
           Frequently Asked Questions
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ textAlign: "center", mb: 5 }}>
-          Need help? Here are some common questions about ABACUS.
+          Need help? Here are some common questions about {APP_NAME}.
         </Typography>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>

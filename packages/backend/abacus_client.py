@@ -2,25 +2,32 @@
 
 from __future__ import annotations
 
-import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import requests
+
+from env import settings
 
 
 class AbacusClient:
     """HTTP client for the ABACUS recommendation service."""
 
-    def __init__(self) -> None:
-        self.base_url = os.getenv("ABACUS_BASE_URL", "").rstrip("/")
-        self.client_secret = os.getenv("ABACUS_CLIENT_SECRET", "")
-        self.timeout = int(os.getenv("ABACUS_TIMEOUT", "15"))
+    def __init__(
+        self,
+        base_url: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        timeout: Optional[int] = None,
+        verify_ssl: Optional[bool] = None,
+    ) -> None:
+        self.base_url = (base_url or settings.ABACUS_BASE_URL).rstrip("/")
+        self.client_secret = client_secret or settings.ABACUS_CLIENT_SECRET
+        self.timeout = timeout if timeout is not None else settings.ABACUS_TIMEOUT
         # Honor VERIFY_SSL=false to allow self-signed certificates during development
-        self.verify_ssl = os.getenv("VERIFY_SSL", "true").lower() not in {
-            "0",
-            "false",
-            "no",
-        }
+        self.verify_ssl = (
+            verify_ssl
+            if verify_ssl is not None
+            else settings.VERIFY_SSL
+        )
 
         self._headers = {
             "Authorization": f"Bearer {self.client_secret}",

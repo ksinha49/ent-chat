@@ -3,6 +3,7 @@ import React from "react"
 import { Box, Grid, Paper, Typography } from "@mui/material"
 import { Add } from "@mui/icons-material"
 import { fadeIn } from "@/components/chat/animations"
+import { APP_NAME } from "@/lib/config"
 
 interface Suggestion {
   title: string
@@ -30,7 +31,7 @@ export default function WelcomeScreen({ suggestions, onSuggestionClick }: Props)
       }}
     >
       <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: "bold" }}>
-        Welcome to ABACUS
+        Welcome to {APP_NAME}
       </Typography>
       <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
         Your intelligent assistant for navigating the Ameritas technology landscape.

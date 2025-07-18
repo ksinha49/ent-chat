@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm"
 import ProcessingIndicator from "@/components/chat/ProcessingIndicator"
 import ErrorMessage from "@/components/chat/ErrorMessage"
 import { fadeIn } from "@/components/chat/animations"
+import { APP_NAME, APP_LOGO } from "@/lib/config"
 
 interface Message {
   id: string
@@ -47,8 +48,8 @@ export default function ChatMessages({ messages, isLoading }: Props) {
                 }}
               >
                 <img
-                  src="/images/ameritas-logo.png"
-                  alt="ABACUS"
+                  src={APP_LOGO}
+                  alt={APP_NAME}
                   style={{ width: "70%", height: "70%", objectFit: "contain" }}
                 />
               </Avatar>
