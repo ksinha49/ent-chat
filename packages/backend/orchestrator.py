@@ -98,31 +98,44 @@ class Orchestrator:
         index_path = vector_dir / "index.faiss"
         meta_path = vector_dir / "metadata.json"
 
+        index_loaded = False
         if index_path.exists() and meta_path.exists():
-            if self.__class__._index is None:
-                self.__class__._index = faiss.read_index(str(index_path))
-                with meta_path.open("r", encoding="utf-8") as fh:
-                    entries = json.load(fh)
-                    if not isinstance(entries, list):
-                        entries = []
-                self.__class__._entries = entries
-                self.__class__._capabilities = [e for e in entries if "category" in e]
-                self.__class__._applications = [e for e in entries if "technologies" in e]
-                self.__class__._cap_index_map = {
-                    i: entries[i].get("id", "")
-                    for i, e in enumerate(entries)
-                    if "category" in e
-                }
-            self.index = self.__class__._index
-            self.entries = self.__class__._entries
-            self.capabilities = self.__class__._capabilities
-            self.applications = self.__class__._applications
-            self._cap_index_map = self.__class__._cap_index_map
-        else:
+            try:
+                if self.__class__._index is None:
+                    self.__class__._index = faiss.read_index(str(index_path))
+                    with meta_path.open("r", encoding="utf-8") as fh:
+                        entries = json.load(fh)
+                        if not isinstance(entries, list):
+                            entries = []
+                    self.__class__._entries = entries
+                    self.__class__._capabilities = [e for e in entries if "category" in e]
+                    self.__class__._applications = [e for e in entries if "technologies" in e]
+                    self.__class__._cap_index_map = {
+                        i: entries[i].get("id", "")
+                        for i, e in enumerate(entries)
+                        if "category" in e
+                    }
+                self.index = self.__class__._index
+                self.entries = self.__class__._entries
+                self.capabilities = self.__class__._capabilities
+                self.applications = self.__class__._applications
+                self._cap_index_map = self.__class__._cap_index_map
+                index_loaded = True
+            except Exception as exc:  # pragma: no cover - start-up fallback
+                print(f"Failed to load vector store: {exc}. Rebuilding index.")
+
+        if not index_loaded:
             # Fallback: load data and build the index, persisting it for later use.
             self.capabilities = self._load_capabilities()
             self.applications = self._load_applications()
-            texts = [e.get("description", "") for e in self.capabilities + self.applications]
+            texts = [
+                e.get("description", "")
+                for e in self.capabilities + self.applications
+            ]
+            if not texts:
+                raise RuntimeError(
+                    "No catalog data available to build vector store."
+                )
             embeddings = self._vector_model.encode(texts, convert_to_numpy=True)
             embeddings = embeddings.astype("float32")
             self.index = faiss.IndexFlatL2(embeddings.shape[1])
