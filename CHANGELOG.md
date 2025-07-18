@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.1] - 2025-07-11
 ### Added
-- `/api/chat` service for streaming AI responses.
+- `http://localhost:8000/ask` endpoint for streaming AI responses.
 - FAQ page for common questions about using ABACUS.
 - Prompt suggestions loaded from `public/prompts.json`.
 

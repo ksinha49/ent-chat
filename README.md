@@ -23,7 +23,7 @@ Continue building your app on:
 
 ## Features
 
-- Interactive chat powered by OpenAI via `/api/chat`
+- Interactive chat powered by OpenAI via `http://localhost:8000/ask`
 - Suggested prompts loaded from `public/prompts.json`
 - FAQ section available at `/faq`
 
