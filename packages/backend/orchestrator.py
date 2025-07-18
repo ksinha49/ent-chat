@@ -4,16 +4,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import faiss
 from sentence_transformers import SentenceTransformer
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-from langchain.llms.base import LLM
 
 from abacus_client import AbacusClient
 from bedrock_adapter import BedrockAdapter
+from prompt_library import get_prompt
+from memory import LongTermMemory, ShortTermMemory
 
 
 # System prompt used to instruct the language model on the format of the
@@ -23,42 +22,6 @@ from bedrock_adapter import BedrockAdapter
 #
 #     {"query": "object storage"}
 #
-planner_system_prompt = (
-    "You generate search keywords for the technology catalog. "
-    "Given a user request, respond with JSON containing a single key 'query'. "
-    "Return **only** the JSON object."
-)
-
-# System prompt instructing the language model how to craft the final
-# conversational answer.  The model receives a ranked list of
-# applications and the user's original question.  It should reply with a
-# concise Markdown formatted summary mentioning the top applications.
-synthesizer_system_prompt = (
-    "You are an assistant that turns ranked applications into a helpful "
-    "answer. Using the provided list and user question, generate a short "
-    "Markdown response describing the most relevant applications as a "
-    "bullet list."
-)
-
-
-class _BedrockLLM(LLM):
-    """LangChain LLM wrapper for :class:`BedrockAdapter`."""
-
-    def __init__(self, adapter: BedrockAdapter) -> None:
-        super().__init__()
-        self.adapter = adapter
-
-    @property
-    def _llm_type(self) -> str:  # pragma: no cover - simple property
-        return "bedrock"
-
-    def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
-        messages = [{"role": "user", "content": prompt}]
-        data = self.adapter.create(self.adapter.model_id, messages)
-        try:
-            return data["choices"][0]["message"]["content"]
-        except (KeyError, IndexError) as exc:
-            raise RuntimeError("Unexpected response structure from Bedrock API") from exc
 
 
 class Orchestrator:
@@ -84,6 +47,10 @@ class Orchestrator:
             # Share the already-loaded resources with the new instance
             self.client = AbacusClient()
             self.adapter = BedrockAdapter()
+            self.short_memory = ShortTermMemory()
+            self.long_memory = LongTermMemory(
+                Path(__file__).with_name("memory") / "long_term.json"
+            )
             self._vector_model = self.__class__._vector_model
             self.index = self.__class__._index
             self.entries = self.__class__._entries
@@ -94,6 +61,10 @@ class Orchestrator:
 
         self.client = AbacusClient()
         self.adapter = BedrockAdapter()
+        self.short_memory = ShortTermMemory()
+        self.long_memory = LongTermMemory(
+            Path(__file__).with_name("memory") / "long_term.json"
+        )
 
         if self.__class__._vector_model is None:
             self.__class__._vector_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -160,9 +131,24 @@ class Orchestrator:
             self.__class__._entries = self.entries
             self.__class__._capabilities = self.capabilities
             self.__class__._applications = self.applications
-            self.__class__._cap_index_map = self._cap_index_map
+        self.__class__._cap_index_map = self._cap_index_map
 
         self.__class__._initialized = True
+
+    # ------------------------------------------------------------------
+    # Low-level LLM helper
+
+    def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
+        """Send formatted messages to the Bedrock adapter."""
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+        data = self.adapter.create(self.adapter.model_id, messages)
+        try:
+            return data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as exc:
+            raise RuntimeError("Unexpected response structure from Bedrock API") from exc
 
     def _build_capability_index(
         self, capabilities: List[Dict[str, str]]
@@ -195,22 +181,23 @@ class Orchestrator:
 
     def run(self, query: str) -> str:
         """Run the recommendation workflow for a user ``query``."""
+        self.short_memory.add("user", query)
         capability_id = self.recommend_capability(query)
         applications = self.recommend_applications(capability_id, query)
-        return self.generate_response(applications, query)
+        draft = self.generate_response(applications, query)
+        final = self._review_answer(draft)
+        self.short_memory.add("assistant", final)
+        self.long_memory.add("user", query)
+        self.long_memory.add("assistant", final)
+        return final
 
     # ------------------------------------------------------------------
     # Capability recommendation logic
 
     def _llm_chain(self, query: str) -> str:
         """Run the query through the Bedrock LLM with the planner prompt."""
-        prompt = f"{planner_system_prompt}\nUser query: {query}"
-        messages = [{"role": "user", "content": prompt}]
-        data = self.adapter.create(self.adapter.model_id, messages)
-        try:
-            return data["choices"][0]["message"]["content"]
-        except (KeyError, IndexError) as exc:
-            raise RuntimeError("Unexpected response structure from Bedrock API") from exc
+        user_prompt = f"User query: {query}"
+        return self._call_llm(get_prompt("planner"), user_prompt)
 
     def recommend_capability(self, query: str) -> str:
         """Return the ID of the capability most relevant to ``query``."""
@@ -253,20 +240,12 @@ class Orchestrator:
         if not candidates:
             candidates = self.applications
 
-        llm = _BedrockLLM(self.adapter)
-        template = (
-            "Rank the following applications in relevance to the user query.\n"
-            "User query: {query}\nApplications:{apps}\n"
-            "Return a JSON list of application IDs ordered most to least relevant."
-        )
-        prompt = PromptTemplate.from_template(template)
-        chain = LLMChain(llm=llm, prompt=prompt)
-
         app_text = "\n".join(
             f"- {a['id']}: {a.get('description', '')}" for a in candidates
         )
+        user_prompt = f"User query: {query}\nApplications:\n{app_text}"
         try:
-            result = chain.run(query=query, apps=app_text)
+            result = self._call_llm(get_prompt("ranker"), user_prompt)
             ranked_ids = json.loads(result)
         except Exception:
             ranked_ids = [a["id"] for a in candidates]
@@ -279,17 +258,14 @@ class Orchestrator:
 
     def generate_response(self, applications: List[Dict[str, str]], query: str) -> str:
         """Generate a conversational response summarizing ``applications``."""
-        llm = _BedrockLLM(self.adapter)
-        template = (
-            f"{synthesizer_system_prompt}\n"
-            "User query: {query}\n"
-            "Ranked applications:\n{apps}\n"
-        )
-        prompt = PromptTemplate.from_template(template)
-        chain = LLMChain(llm=llm, prompt=prompt)
-
         app_text = "\n".join(
             f"- {app.get('name', app.get('id', ''))}: {app.get('description', '')}"
             for app in applications
         )
-        return chain.run(query=query, apps=app_text)
+        user_prompt = f"User query: {query}\nRanked applications:\n{app_text}"
+        return self._call_llm(get_prompt("synthesizer"), user_prompt)
+
+    def _review_answer(self, answer: str) -> str:
+        """Run the reviewer agent to polish the final answer."""
+        review_prompt = f"Answer to review:\n{answer}"
+        return self._call_llm(get_prompt("reviewer"), review_prompt)
