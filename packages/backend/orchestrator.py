@@ -12,7 +12,9 @@ from sentence_transformers import SentenceTransformer
 from abacus_client import AbacusClient
 from bedrock_adapter import BedrockAdapter
 from prompt_library import get_prompt
-from memory import LongTermMemory, ShortTermMemory
+from memory import ShortTermMemory
+from sqlite_memory import SQLiteMemory
+from env import settings
 
 
 # System prompt used to instruct the language model on the format of the
@@ -48,9 +50,7 @@ class Orchestrator:
             self.client = AbacusClient()
             self.adapter = BedrockAdapter()
             self.short_memory = ShortTermMemory()
-            self.long_memory = LongTermMemory(
-                Path(__file__).with_name("memory") / "long_term.json"
-            )
+            self.long_memory = SQLiteMemory(Path(settings.LONG_TERM_DB_PATH))
             self._vector_model = self.__class__._vector_model
             self.index = self.__class__._index
             self.entries = self.__class__._entries
@@ -62,9 +62,7 @@ class Orchestrator:
         self.client = AbacusClient()
         self.adapter = BedrockAdapter()
         self.short_memory = ShortTermMemory()
-        self.long_memory = LongTermMemory(
-            Path(__file__).with_name("memory") / "long_term.json"
-        )
+        self.long_memory = SQLiteMemory(Path(settings.LONG_TERM_DB_PATH))
 
         if self.__class__._vector_model is None:
             self.__class__._vector_model = SentenceTransformer("all-MiniLM-L6-v2")
