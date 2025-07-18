@@ -23,7 +23,8 @@ Continue building your app on:
 
 ## Features
 
-- Interactive chat powered by OpenAI via `http://localhost:8000/ask`
+- Interactive chat powered by OpenAI via the `/ask` endpoint
+  (backend URL configurable with `NEXT_PUBLIC_API_URL`)
 - Suggested prompts loaded from `public/prompts.json`
 - FAQ section available at `/faq`
 
@@ -55,7 +56,8 @@ backend requires AWS Bedrock and ABACUS settings:
 - `ABACUS_BASE_URL` and `ABACUS_CLIENT_SECRET`
 
 The service exposes a POST `/ask` endpoint used by the frontend to retrieve
-answers.
+answers. Point the frontend to the backend by setting `NEXT_PUBLIC_API_URL`
+in `packages/frontend/.env` (see `packages/frontend/.env.example`).
 
 ## How It Works
 
