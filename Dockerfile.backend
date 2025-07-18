@@ -2,6 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Ensure directory for persistent memory exists
+RUN mkdir -p /app/memory
+
 # Install Python dependencies
 COPY packages/backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
