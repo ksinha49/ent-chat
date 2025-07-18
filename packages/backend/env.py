@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+from pathlib import Path
 
 
 @dataclass
@@ -30,6 +31,12 @@ class Settings:
     # UI
     APP_NAME: str = os.getenv("APP_NAME", "AskABACUS")
     APP_LOGO: str = os.getenv("APP_LOGO", "/images/ameritas-logo.png")
+
+    # Memory
+    LONG_TERM_DB_PATH: str = os.getenv(
+        "LONG_TERM_DB_PATH",
+        str(Path(__file__).with_name("memory") / "long_term.db"),
+    )
 
 
 settings = Settings()

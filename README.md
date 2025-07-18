@@ -61,3 +61,10 @@ Copy `.env.example` to `.env` and provide values for the following settings:
 - UI components from the Shadcn library without using the CLI
 - Agentic orchestration with supervisor, worker, and reviewer roles
 - Basic short-term and long-term memory for conversations
+
+### Migration notes
+
+Long-term memory is now stored in an SQLite database located at
+`packages/backend/memory/long_term.db` by default. Previous versions used a
+`long_term.json` file. The service will create the new database automatically.
+To use a custom location, set the `LONG_TERM_DB_PATH` environment variable.
