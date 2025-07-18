@@ -29,9 +29,10 @@ Continue building your app on:
 
 ## Local development
 
-1. Install dependencies with `pnpm install`
-2. Start the development server with `pnpm dev`
-3. Open `http://localhost:3000` in your browser
+1. Navigate to `packages/frontend`
+2. Install dependencies with `pnpm install`
+3. Start the development server with `pnpm dev`
+4. Open `http://localhost:3000` in your browser
 
 ## How It Works
 
