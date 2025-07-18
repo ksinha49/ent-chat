@@ -63,13 +63,44 @@ class Orchestrator:
         self.client = AbacusClient()
         self.adapter = BedrockAdapter()
 
-        # Load catalog data and build the search indices.
-        self.capabilities = self._load_capabilities()
         self._vector_model = SentenceTransformer("all-MiniLM-L6-v2")
-        self.index, self._id_map = self._build_capability_index(self.capabilities)
+        vector_dir = Path(__file__).with_name("vector_store")
+        index_path = vector_dir / "index.faiss"
+        meta_path = vector_dir / "metadata.json"
 
-        self.applications = self._load_applications()
-        self._app_index, self._app_id_map = self._build_application_index(self.applications)
+        if index_path.exists() and meta_path.exists():
+            self.index = faiss.read_index(str(index_path))
+            with meta_path.open("r", encoding="utf-8") as fh:
+                entries = json.load(fh)
+                if not isinstance(entries, list):
+                    entries = []
+            self.entries = entries
+            self.capabilities = [e for e in entries if "category" in e]
+            self.applications = [e for e in entries if "technologies" in e]
+            self._cap_index_map = {
+                i: entries[i].get("id", "")
+                for i, e in enumerate(entries)
+                if "category" in e
+            }
+        else:
+            # Fallback: load data and build the index, persisting it for later use.
+            self.capabilities = self._load_capabilities()
+            self.applications = self._load_applications()
+            texts = [e.get("description", "") for e in self.capabilities + self.applications]
+            embeddings = self._vector_model.encode(texts, convert_to_numpy=True)
+            embeddings = embeddings.astype("float32")
+            self.index = faiss.IndexFlatL2(embeddings.shape[1])
+            if len(embeddings):
+                self.index.add(embeddings)
+            self.entries = self.capabilities + self.applications
+            self._cap_index_map = {
+                i: self.capabilities[i].get("id", "")
+                for i in range(len(self.capabilities))
+            }
+            vector_dir.mkdir(exist_ok=True)
+            faiss.write_index(self.index, str(index_path))
+            with meta_path.open("w", encoding="utf-8") as fh:
+                json.dump(self.entries, fh, indent=2)
 
     def _load_capabilities(self) -> List[Dict[str, str]]:
         """Load technology capabilities from the JSON catalog."""
@@ -148,9 +179,11 @@ class Orchestrator:
         search_text = search_obj.get("query", query)
         embedding = self._vector_model.encode([search_text], convert_to_numpy=True)
         embedding = embedding.astype("float32")
-        distances, indices = self.index.search(embedding, 1)
-        if indices.size > 0 and indices[0][0] < len(self._id_map):
-            return self._id_map[indices[0][0]]
+        k = min(len(self.entries), 5)
+        distances, indices = self.index.search(embedding, k)
+        for idx in indices[0]:
+            if idx in self._cap_index_map:
+                return self._cap_index_map[idx]
         return ""
 
     # ------------------------------------------------------------------
