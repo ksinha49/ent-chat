@@ -20,10 +20,10 @@ def read_root() -> dict[str, str]:
     return {"status": "Backend running"}
 
 
-@app.post("/run")
-def run_orchestration(request: dict[str, str]) -> dict[str, str]:
-    """Trigger the orchestrator workflow."""
-    query = request.get("query", "")
+@app.post("/ask")
+def ask_question(request: dict[str, str]) -> dict[str, str]:
+    """Run the orchestrator with the provided question."""
+    question = request.get("question", "")
     orchestrator = Orchestrator()
-    answer = orchestrator.run(query)
+    answer = orchestrator.run(question)
     return {"answer": answer}
