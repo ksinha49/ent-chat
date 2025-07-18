@@ -68,7 +68,6 @@ Copy `.env.example` to `.env` and provide values for the following settings:
 
 ## Features
 
-- Streaming chat responses from the `/ask` endpoint
 - Suggested prompts loaded from `public/prompts.json`
 - FAQ page at `/faq`
 - UI components from the Shadcn library without using the CLI
