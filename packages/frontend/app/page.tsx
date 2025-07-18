@@ -25,6 +25,7 @@ import ChatMessages from "@/components/chat/ChatMessages"
 import WelcomeScreen from "@/components/chat/WelcomeScreen"
 import ChatInputForm from "@/components/chat/ChatInputForm"
 import ErrorBoundary from "@/components/ErrorBoundary"
+import { logger } from "@/lib/logger"
 
 /* ------------- Slide transition that always keeps node mounted -------- */
 
@@ -40,20 +41,6 @@ const Transition = React.forwardRef(function Transition(
 interface Suggestion {
   title: string
   prompt: string
-}
-
-const logger = {
-  info: (message: string, data?: any) =>
-    console.log(JSON.stringify({ level: "info", timestamp: new Date().toISOString(), message, data })),
-  error: (message: string, error?: any) =>
-    console.error(
-      JSON.stringify({
-        level: "error",
-        timestamp: new Date().toISOString(),
-        message,
-        error: error ? { message: error.message, stack: error.stack } : "No error object",
-      }),
-    ),
 }
 
 /* ============================= PAGE =================================== */
