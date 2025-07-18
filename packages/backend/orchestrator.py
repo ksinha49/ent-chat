@@ -57,31 +57,67 @@ class _BedrockLLM(LLM):
 
 
 class Orchestrator:
-    """Simple orchestrator placeholder."""
+    """Simple orchestrator placeholder using a Singleton pattern."""
+
+    _instance: Optional["Orchestrator"] = None
+    _initialized = False
+
+    _vector_model: Optional[SentenceTransformer] = None
+    _index: Optional[faiss.Index] = None
+    _entries: List[Dict[str, str]] = []
+    _capabilities: List[Dict[str, str]] = []
+    _applications: List[Dict[str, str]] = []
+    _cap_index_map: Dict[int, str] = {}
+
+    def __new__(cls) -> "Orchestrator":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self) -> None:
+        if self.__class__._initialized:
+            # Share the already-loaded resources with the new instance
+            self.client = AbacusClient()
+            self.adapter = BedrockAdapter()
+            self._vector_model = self.__class__._vector_model
+            self.index = self.__class__._index
+            self.entries = self.__class__._entries
+            self.capabilities = self.__class__._capabilities
+            self.applications = self.__class__._applications
+            self._cap_index_map = self.__class__._cap_index_map
+            return
+
         self.client = AbacusClient()
         self.adapter = BedrockAdapter()
 
-        self._vector_model = SentenceTransformer("all-MiniLM-L6-v2")
+        if self.__class__._vector_model is None:
+            self.__class__._vector_model = SentenceTransformer("all-MiniLM-L6-v2")
+        self._vector_model = self.__class__._vector_model
+
         vector_dir = Path(__file__).with_name("vector_store")
         index_path = vector_dir / "index.faiss"
         meta_path = vector_dir / "metadata.json"
 
         if index_path.exists() and meta_path.exists():
-            self.index = faiss.read_index(str(index_path))
-            with meta_path.open("r", encoding="utf-8") as fh:
-                entries = json.load(fh)
-                if not isinstance(entries, list):
-                    entries = []
-            self.entries = entries
-            self.capabilities = [e for e in entries if "category" in e]
-            self.applications = [e for e in entries if "technologies" in e]
-            self._cap_index_map = {
-                i: entries[i].get("id", "")
-                for i, e in enumerate(entries)
-                if "category" in e
-            }
+            if self.__class__._index is None:
+                self.__class__._index = faiss.read_index(str(index_path))
+                with meta_path.open("r", encoding="utf-8") as fh:
+                    entries = json.load(fh)
+                    if not isinstance(entries, list):
+                        entries = []
+                self.__class__._entries = entries
+                self.__class__._capabilities = [e for e in entries if "category" in e]
+                self.__class__._applications = [e for e in entries if "technologies" in e]
+                self.__class__._cap_index_map = {
+                    i: entries[i].get("id", "")
+                    for i, e in enumerate(entries)
+                    if "category" in e
+                }
+            self.index = self.__class__._index
+            self.entries = self.__class__._entries
+            self.capabilities = self.__class__._capabilities
+            self.applications = self.__class__._applications
+            self._cap_index_map = self.__class__._cap_index_map
         else:
             # Fallback: load data and build the index, persisting it for later use.
             self.capabilities = self._load_capabilities()
@@ -101,6 +137,14 @@ class Orchestrator:
             faiss.write_index(self.index, str(index_path))
             with meta_path.open("w", encoding="utf-8") as fh:
                 json.dump(self.entries, fh, indent=2)
+
+            self.__class__._index = self.index
+            self.__class__._entries = self.entries
+            self.__class__._capabilities = self.capabilities
+            self.__class__._applications = self.applications
+            self.__class__._cap_index_map = self._cap_index_map
+
+        self.__class__._initialized = True
 
     def _load_capabilities(self) -> List[Dict[str, str]]:
         """Load technology capabilities from the JSON catalog."""
