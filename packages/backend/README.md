@@ -20,9 +20,19 @@ placeholders that will be expanded as the service evolves.
 
 3. Install Python dependencies:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+pip install -r requirements.txt
+```
+
+## Environment variables
+
+Copy `../../.env.example` to `.env` in the repository root and populate the
+required values:
+
+- `BEDROCK_API_BASE`, `BEDROCK_API_KEY`, and `BEDROCK_MODEL_ID`
+- `ABACUS_BASE_URL` and `ABACUS_CLIENT_SECRET`
+
+These settings allow the service to call AWS Bedrock and the ABACUS API.
 
 ## Running
 
@@ -31,6 +41,9 @@ Activate your environment if you haven't already and run:
 ```bash
 python main.py
 ```
+
+Once running, the API exposes a `/ask` endpoint that accepts a JSON payload with
+a `question` field and returns the generated answer.
 
 The current scripts raise `NotImplementedError` until the backend logic
 is implemented.
