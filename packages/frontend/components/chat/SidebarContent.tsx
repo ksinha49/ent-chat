@@ -34,6 +34,7 @@ export default function SidebarContent({
   setIsAboutDialogOpen,
   setUserMenuAnchorEl
 }: Props) {
+  const [logoFailedToLoad, setLogoFailedToLoad] = React.useState(false)
   return (
     <Box
       sx={{
@@ -60,16 +61,16 @@ export default function SidebarContent({
             py: 0.5
           }}
         >
-          <img
-            src="/images/ameritas-logo.png"
-            alt="ABACUS Logo"
-            style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
-            onError={(e) => {
-              e.currentTarget.style.display = "none"
-              e.currentTarget.parentElement!.innerHTML =
-                '<span style="color:white;font-weight:bold;font-size:14px;">A</span>'
-            }}
-          />
+          {logoFailedToLoad ? (
+            <span style={{ color: "white", fontWeight: "bold", fontSize: 14 }}>A</span>
+          ) : (
+            <img
+              src="/images/ameritas-logo.png"
+              alt="ABACUS Logo"
+              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+              onError={() => setLogoFailedToLoad(true)}
+            />
+          )}
         </Box>
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
           ABACUS
