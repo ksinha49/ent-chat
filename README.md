@@ -1,13 +1,31 @@
 # ABACUS Technology Query UI
 
-This repository contains a Next.js chat interface and a Python backend for the ABACUS assistant. Use it to explore the Ameritas technology landscape through a conversational UI.
+This project provides an end‑to‑end chat experience built with a Next.js
+frontend and a FastAPI backend.  It is aimed at developers who need to explore
+the Ameritas technology catalog via a conversational assistant.  The backend
+coordinates calls to AWS Bedrock, the ABACUS API and a local SQLite store while
+the frontend renders a responsive UI.
 
 ## Project structure
 
 - `packages/frontend` – React application powered by Next.js
 - `packages/backend` – FastAPI service that handles `/ask` requests
 
+## Architecture
+
+```mermaid
+flowchart TD
+    browser["User Browser"] -->|HTTP| frontend["Next.js UI"]
+    frontend -->|POST /ask| backend["FastAPI service"]
+    backend --> orchestrator["Orchestrator"]
+    orchestrator --> bedrock["AWS Bedrock"]
+    orchestrator --> abacus["ABACUS API"]
+    orchestrator --> memory["SQLite Memory"]
+```
+
 ## Getting started
+
+For a step‑by‑step installation guide see [INSTALL.md](INSTALL.md).
 
 ### Frontend
 
