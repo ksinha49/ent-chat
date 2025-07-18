@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   icons: {
     icon: APP_LOGO,
   },
-  generator: 'v0.dev'
 }
 
 export default function RootLayout({
