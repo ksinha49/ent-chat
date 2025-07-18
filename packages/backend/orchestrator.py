@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -136,13 +137,16 @@ class Orchestrator:
     # ------------------------------------------------------------------
     # Low-level LLM helper
 
-    def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
+    async def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
         """Send formatted messages to the Bedrock adapter."""
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        data = self.adapter.create(self.adapter.model_id, messages)
+        loop = asyncio.get_running_loop()
+        data = await loop.run_in_executor(
+            None, lambda: self.adapter.create(self.adapter.model_id, messages)
+        )
         try:
             return data["choices"][0]["message"]["content"]
         except (KeyError, IndexError) as exc:
@@ -177,13 +181,13 @@ class Orchestrator:
         id_map = [a.get("id", "") for a in applications]
         return index, id_map
 
-    def run(self, query: str) -> str:
+    async def run(self, query: str) -> str:
         """Run the recommendation workflow for a user ``query``."""
         self.short_memory.add("user", query)
-        capability_id = self.recommend_capability(query)
-        applications = self.recommend_applications(capability_id, query)
-        draft = self.generate_response(applications, query)
-        final = self._review_answer(draft)
+        capability_id = await self.recommend_capability(query)
+        applications = await self.recommend_applications(capability_id, query)
+        draft = await self.generate_response(applications, query)
+        final = await self._review_answer(draft)
         self.short_memory.add("assistant", final)
         self.long_memory.add("user", query)
         self.long_memory.add("assistant", final)
@@ -192,15 +196,15 @@ class Orchestrator:
     # ------------------------------------------------------------------
     # Capability recommendation logic
 
-    def _llm_chain(self, query: str) -> str:
+    async def _llm_chain(self, query: str) -> str:
         """Run the query through the Bedrock LLM with the planner prompt."""
         user_prompt = f"User query: {query}"
-        return self._call_llm(get_prompt("planner"), user_prompt)
+        return await self._call_llm(get_prompt("planner"), user_prompt)
 
-    def recommend_capability(self, query: str) -> str:
+    async def recommend_capability(self, query: str) -> str:
         """Return the ID of the capability most relevant to ``query``."""
         try:
-            result = self._llm_chain(query)
+            result = await self._llm_chain(query)
             search_obj = json.loads(result)
         except Exception:
             # Fall back to using the raw query if the model output cannot be parsed.
@@ -219,7 +223,7 @@ class Orchestrator:
     # ------------------------------------------------------------------
     # Application recommendation logic
 
-    def recommend_applications(self, capability_id: str, query: str) -> List[Dict[str, str]]:
+    async def recommend_applications(self, capability_id: str, query: str) -> List[Dict[str, str]]:
         """Return applications ranked for ``query`` filtered by ``capability_id``."""
         capability = next(
             (c for c in self.capabilities if c.get("id") == capability_id),
@@ -243,7 +247,7 @@ class Orchestrator:
         )
         user_prompt = f"User query: {query}\nApplications:\n{app_text}"
         try:
-            result = self._call_llm(get_prompt("ranker"), user_prompt)
+            result = await self._call_llm(get_prompt("ranker"), user_prompt)
             ranked_ids = json.loads(result)
         except Exception:
             ranked_ids = [a["id"] for a in candidates]
@@ -254,16 +258,16 @@ class Orchestrator:
         ]
         return [r for r in ranked if r]
 
-    def generate_response(self, applications: List[Dict[str, str]], query: str) -> str:
+    async def generate_response(self, applications: List[Dict[str, str]], query: str) -> str:
         """Generate a conversational response summarizing ``applications``."""
         app_text = "\n".join(
             f"- {app.get('name', app.get('id', ''))}: {app.get('description', '')}"
             for app in applications
         )
         user_prompt = f"User query: {query}\nRanked applications:\n{app_text}"
-        return self._call_llm(get_prompt("synthesizer"), user_prompt)
+        return await self._call_llm(get_prompt("synthesizer"), user_prompt)
 
-    def _review_answer(self, answer: str) -> str:
+    async def _review_answer(self, answer: str) -> str:
         """Run the reviewer agent to polish the final answer."""
         review_prompt = f"Answer to review:\n{answer}"
-        return self._call_llm(get_prompt("reviewer"), review_prompt)
+        return await self._call_llm(get_prompt("reviewer"), review_prompt)
