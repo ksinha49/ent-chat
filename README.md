@@ -45,6 +45,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Configuration
+
+Copy `.env.example` to `.env` and fill in your credentials. At a minimum the
+backend requires AWS Bedrock and ABACUS settings:
+
+- `BEDROCK_API_BASE` and `BEDROCK_API_KEY`
+- `BEDROCK_MODEL_ID`
+- `ABACUS_BASE_URL` and `ABACUS_CLIENT_SECRET`
+
+The service exposes a POST `/ask` endpoint used by the frontend to retrieve
+answers.
+
 ## How It Works
 
 1. Create and modify your project using [v0.dev](https://v0.dev)
