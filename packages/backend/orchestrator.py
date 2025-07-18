@@ -29,6 +29,17 @@ planner_system_prompt = (
     "Return **only** the JSON object."
 )
 
+# System prompt instructing the language model how to craft the final
+# conversational answer.  The model receives a ranked list of
+# applications and the user's original question.  It should reply with a
+# concise Markdown formatted summary mentioning the top applications.
+synthesizer_system_prompt = (
+    "You are an assistant that turns ranked applications into a helpful "
+    "answer. Using the provided list and user question, generate a short "
+    "Markdown response describing the most relevant applications as a "
+    "bullet list."
+)
+
 
 class _BedrockLLM(LLM):
     """LangChain LLM wrapper for :class:`BedrockAdapter`."""
@@ -111,11 +122,11 @@ class Orchestrator:
         id_map = [a.get("id", "") for a in applications]
         return index, id_map
 
-    def run(self) -> None:
-        """Run a placeholder workflow."""
-        # In a real implementation this would orchestrate calls between
-        # `AbacusClient` and `BedrockAdapter`.
-        raise NotImplementedError("Orchestration logic not implemented yet")
+    def run(self, query: str) -> str:
+        """Run the recommendation workflow for a user ``query``."""
+        capability_id = self.recommend_capability(query)
+        applications = self.recommend_applications(capability_id, query)
+        return self.generate_response(applications, query)
 
     # ------------------------------------------------------------------
     # Capability recommendation logic
@@ -187,3 +198,20 @@ class Orchestrator:
             for rid in ranked_ids
         ]
         return [r for r in ranked if r]
+
+    def generate_response(self, applications: List[Dict[str, str]], query: str) -> str:
+        """Generate a conversational response summarizing ``applications``."""
+        llm = _BedrockLLM(self.adapter)
+        template = (
+            f"{synthesizer_system_prompt}\n"
+            "User query: {query}\n"
+            "Ranked applications:\n{apps}\n"
+        )
+        prompt = PromptTemplate.from_template(template)
+        chain = LLMChain(llm=llm, prompt=prompt)
+
+        app_text = "\n".join(
+            f"- {app.get('name', app.get('id', ''))}: {app.get('description', '')}"
+            for app in applications
+        )
+        return chain.run(query=query, apps=app_text)

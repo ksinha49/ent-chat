@@ -21,8 +21,9 @@ def read_root() -> dict[str, str]:
 
 
 @app.post("/run")
-def run_orchestration() -> dict[str, str]:
+def run_orchestration(request: dict[str, str]) -> dict[str, str]:
     """Trigger the orchestrator workflow."""
+    query = request.get("query", "")
     orchestrator = Orchestrator()
-    orchestrator.run()
-    return {"detail": "Orchestration started"}
+    answer = orchestrator.run(query)
+    return {"answer": answer}
