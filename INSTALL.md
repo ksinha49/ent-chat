@@ -1,0 +1,42 @@
+# Installation Guide
+
+This document describes how to set up the frontend and backend for local development.
+
+## Requirements
+
+- **Node.js 18+** and [pnpm](https://pnpm.io/) for the Next.js frontend
+- **Python 3.10+** for the FastAPI backend
+- Optional: Docker and Docker Compose for containerized runs
+
+## Frontend setup
+
+```bash
+cd packages/frontend
+pnpm install
+pnpm dev
+```
+
+Access the UI at `http://localhost:3000`.
+
+## Backend setup
+
+```bash
+cd packages/backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python load_embeddings.py   # one-time
+python main.py
+```
+
+The API exposes `/ask` on port `8000` by default.
+
+## Docker Compose
+
+To build and run both services using containers:
+
+```bash
+docker-compose up --build
+```
+
+This command creates a volume named `memory-data` that stores the SQLite database used for long-term memory.
