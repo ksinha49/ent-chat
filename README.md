@@ -1,74 +1,48 @@
 # ABACUS Technology Query UI
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+This repository contains a Next.js chat interface and a Python backend for the ABACUS assistant. Use it to explore the Ameritas technology landscape through a conversational UI.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/koushiksinha92-gmailcoms-projects/v0-technology-query-ui)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/zTnLi3IBmVV)
+## Project structure
 
-## Overview
+- `packages/frontend` – React application powered by Next.js
+- `packages/backend` – FastAPI service that handles `/ask` requests
 
-ABACUS is an intelligent assistant that helps you explore the Ameritas technology landscape. This repository contains the Next.js source code for the chat UI and supporting services. Any changes you make in [v0.dev](https://v0.dev) will be automatically synced here.
+## Getting started
 
-## Deployment
+### Frontend
 
-Your project is live at:
+```bash
+cd packages/frontend
+pnpm install
+pnpm dev
+```
 
-**[https://vercel.com/koushiksinha92-gmailcoms-projects/v0-technology-query-ui](https://vercel.com/koushiksinha92-gmailcoms-projects/v0-technology-query-ui)**
+Open `http://localhost:3000` in your browser.
 
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.dev/chat/projects/zTnLi3IBmVV](https://v0.dev/chat/projects/zTnLi3IBmVV)**
-
-## Features
-
-- Interactive chat powered by OpenAI via the `/ask` endpoint
-  (backend URL configurable with `NEXT_PUBLIC_API_URL`)
-- Suggested prompts loaded from `public/prompts.json`
-- FAQ section available at `/faq`
-- Includes prebuilt UI components from the Shadcn library without using the CLI
-
-## Local development
-
-1. Navigate to `packages/frontend`
-2. Install dependencies with `pnpm install`
-3. Start the development server with `pnpm dev`
-4. Open `http://localhost:3000` in your browser
-
-## Backend Setup
-
-The Python backend lives in `packages/backend`.
+### Backend
 
 ```bash
 cd packages/backend
 python3 -m venv .venv  # optional
 source .venv/bin/activate
 pip install -r requirements.txt
+python main.py
 ```
 
 ## Configuration
 
-Copy `.env.example` to `.env` and fill in your credentials. At a minimum the
-backend requires AWS Bedrock and ABACUS settings:
+Copy `.env.example` to `.env` and provide values for the following settings:
 
 - `BEDROCK_API_BASE` and `BEDROCK_API_KEY`
 - `BEDROCK_MODEL_ID`
 - `ABACUS_BASE_URL` and `ABACUS_CLIENT_SECRET`
-- `VERIFY_SSL` (set to `false` to allow self-signed certificates)
+- `VERIFY_SSL` (use `false` to allow self-signed certificates)
+- `NEXT_PUBLIC_API_URL` – URL of the backend for the frontend to call
+- Optional: `APP_NAME`, `APP_LOGO`, and `ALLOWED_ORIGINS`
 
-The service exposes a POST `/ask` endpoint used by the frontend to retrieve
-answers. Point the frontend to the backend by setting `NEXT_PUBLIC_API_URL`
-in `packages/frontend/.env` (see `packages/frontend/.env.example`).
-Additional optional settings let you customize the application name and logo:
+## Features
 
-- `APP_NAME` and `NEXT_PUBLIC_APP_NAME`
-- `APP_LOGO` and `NEXT_PUBLIC_APP_LOGO`
-- `ALLOWED_ORIGINS` for CORS configuration
-
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- Streaming chat responses from the `/ask` endpoint
+- Suggested prompts loaded from `public/prompts.json`
+- FAQ page at `/faq`
+- UI components from the Shadcn library without using the CLI
