@@ -1,47 +1,27 @@
 "use client"
-import React, { useState, useRef, useEffect, useCallback, type ReactElement } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 
 import {
   AppBar,
   Box,
-  Button,
   IconButton,
   Toolbar,
   Typography,
   useMediaQuery,
   useTheme,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Slide,
 } from "@mui/material"
 import { Menu as MenuIcon, HelpOutline } from "@mui/icons-material"
-import type { TransitionProps } from "@mui/material/transitions"
 import Sidebar from "@/components/chat/Sidebar"
 import ChatMessages from "@/components/chat/ChatMessages"
 import WelcomeScreen from "@/components/chat/WelcomeScreen"
 import ChatInputForm from "@/components/chat/ChatInputForm"
 import ErrorBoundary from "@/components/ErrorBoundary"
-import { logger } from "@/lib/logger"
+import AboutDialog from "@/components/chat/AboutDialog"
+import { useChat } from "@/hooks/use-chat"
+import { useSuggestions } from "@/hooks/use-suggestions"
+import { useChatScroll } from "@/hooks/use-chat-scroll"
 
-/* ------------- Slide transition that always keeps node mounted -------- */
-
-const Transition = React.forwardRef(function Transition(
-  props: TransitionProps & { children: ReactElement<any, any> },
-  ref: React.Ref<unknown>,
-) {
-  return <Slide direction="up" ref={ref} {...props} />
-})
-
-/* ----------------------------- helpers -------------------------------- */
-
-interface Suggestion {
-  title: string
-  prompt: string
-}
 
 /* ============================= PAGE =================================== */
 
@@ -49,91 +29,24 @@ export function Chat() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false)
 
-  /* -------- authentication / user menu ---------- */
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(true)
 
-  /* -------- about dialog ---------- */
-  const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false)
+  const {
+    messages,
+    input,
+    isLoading,
+    handleInputChange,
+    handleSubmit,
+    setMessages,
+    setInput,
+    queryHistory,
+  } = useChat()
 
-  /* -------- chat state ---------- */
-  const [messages, setMessages] = useState<{ id: string; role: string; content: string }[]>([])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value)
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const question = input.trim()
-    if (!question) return
-
-    const userMessage = { id: `user-${Date.now()}`, role: "user", content: question }
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-
-    setIsLoading(true)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-
-    try {
-      const res = await fetch(`${apiUrl}/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      })
-      const data = await res.json()
-      const assistantMessage = { id: `assistant-${Date.now()}`, role: "assistant", content: data.answer }
-      setMessages((prev) => [...prev, assistantMessage])
-    } catch (error: any) {
-      logger.error("Chat submission failed", error)
-      const errorMessage = {
-        id: `error-${Date.now()}`,
-        role: "system" as const,
-        content: `I'm sorry, but I've encountered an issue. Please check your connection or try again later. \n\n**Error:** ${error.message}`,
-      }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  /* -------- misc ---------- */
-  const queryHistory = messages
-    .filter((m) => m.role === "user")
-    .map((m) => ({ id: m.id, content: m.content }))
-  const chatContainerRef = useRef<HTMLDivElement>(null)
-
-  /* -------------------- effects -------------------- */
-
-  // Fetch suggestions on mount
-  useEffect(() => {
-    fetch("/prompts.json")
-      .then((res) => res.json())
-      .then((data) => setSuggestions(data.suggestions))
-      .catch((err) => logger.error("Failed to load suggestions", err))
-  }, [])
-
-  const scrollToBottom = useCallback(() => {
-    if (!chatContainerRef.current) return
-    try {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: "smooth",
-      })
-    } catch (e) {
-      logger.error("scrollToBottom failed", e)
-    }
-  }, [])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages, scrollToBottom])
-
-  /* ------------------- handlers ------------------- */
+  const suggestions = useSuggestions()
+  const chatContainerRef = useChatScroll([messages])
 
   const handleSuggestionClick = (prompt: string) => {
     setInput(prompt)
@@ -261,23 +174,7 @@ export function Chat() {
       </Box>
 
       {/* ABOUT DIALOG */}
-      <Dialog
-        open={isAboutDialogOpen}
-        onClose={() => setIsAboutDialogOpen(false)}
-        TransitionComponent={Transition}
-        keepMounted
-      >
-        <DialogTitle>About ABACUS</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            ABACUS is an intelligent assistant designed to help you navigate the Ameritas technology landscape. Query
-            our repository for information on approved technologies, standards, and best practices.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsAboutDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      <AboutDialog open={isAboutDialogOpen} onClose={() => setIsAboutDialogOpen(false)} />
     </Box>
   )
 }
