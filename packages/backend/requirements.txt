@@ -2,3 +2,5 @@ boto3>=1.28
 requests>=2.31
 fastapi
 uvicorn[standard]
+sentence-transformers>=2.5
+faiss-cpu>=1.7
