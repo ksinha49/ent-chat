@@ -23,9 +23,9 @@ def read_root() -> dict[str, str]:
 
 
 @app.post("/ask")
-def ask_question(request: dict[str, str]) -> dict[str, str]:
+async def ask_question(request: dict[str, str]) -> dict[str, str]:
     """Run the orchestrator with the provided question."""
     question = request.get("question", "")
     orchestrator = Orchestrator()
-    answer = orchestrator.run(question)
+    answer = await orchestrator.run(question)
     return {"answer": answer}
