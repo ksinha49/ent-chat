@@ -71,3 +71,26 @@ class AbacusClient:
             raise RuntimeError(
                 "Unexpected response structure from ABACUS service"
             ) from exc
+
+    def query_data(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        """Fetch JSON data from the ABACUS API using OData query parameters."""
+
+        if not self.base_url or not self.client_secret:
+            raise RuntimeError("ABACUS API credentials are not configured")
+
+        url = f"{self.base_url}/{endpoint.lstrip('/') }"
+        try:
+            response = requests.get(
+                url,
+                headers=self._headers,
+                params=params or {},
+                timeout=self.timeout,
+                verify=self.verify_ssl,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data.get("value", data)
+        except requests.RequestException as exc:  # pragma: no cover - network
+            raise RuntimeError("Failed to query ABACUS service") from exc
+        except ValueError as exc:  # pragma: no cover - unlikely
+            raise RuntimeError("Invalid response from ABACUS service") from exc
