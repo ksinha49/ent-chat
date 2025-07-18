@@ -7,11 +7,10 @@ interface Props {
   input: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
-  isProcessing: boolean
   isLoading: boolean
 }
 
-export default function ChatInputForm({ input, onChange, onSubmit, isProcessing, isLoading }: Props) {
+export default function ChatInputForm({ input, onChange, onSubmit, isLoading }: Props) {
   return (
     <Box sx={{ p: { xs: 1, md: 2 }, bgcolor: "transparent" }}>
       <Paper
@@ -34,7 +33,7 @@ export default function ChatInputForm({ input, onChange, onSubmit, isProcessing,
           onChange={onChange}
           multiline
           maxRows={5}
-          disabled={isProcessing}
+          disabled={isLoading}
           InputProps={{ disableUnderline: true, sx: { p: "10px 20px" } }}
         />
         <Button
@@ -42,9 +41,9 @@ export default function ChatInputForm({ input, onChange, onSubmit, isProcessing,
           variant="contained"
           disabled={isLoading || !input.trim()}
           sx={{ borderRadius: "20px", mr: 1 }}
-          startIcon={isProcessing ? <CircularProgress size={16} color="inherit" /> : <AutoAwesome />}
+          startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <AutoAwesome />}
         >
-          {isProcessing ? "..." : "Ask"}
+          {isLoading ? "..." : "Ask"}
         </Button>
       </Paper>
     </Box>

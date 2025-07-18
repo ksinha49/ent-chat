@@ -62,7 +62,6 @@ export function Chat() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
   /* -------- authentication / user menu ---------- */
@@ -91,7 +90,6 @@ export function Chat() {
     setInput("")
 
     setIsLoading(true)
-    setIsProcessing(true)
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
     try {
@@ -112,7 +110,6 @@ export function Chat() {
       }
       setMessages((prev) => [...prev, errorMessage])
     } finally {
-      setIsProcessing(false)
       setIsLoading(false)
     }
   }
@@ -148,10 +145,6 @@ export function Chat() {
   useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
-
-  useEffect(() => {
-    setIsProcessing(isLoading)
-  }, [isLoading])
 
   /* ------------------- handlers ------------------- */
 
@@ -255,7 +248,6 @@ export function Chat() {
           input={input}
           onChange={handleInputChange}
           onSubmit={handleSubmit}
-          isProcessing={isProcessing}
           isLoading={isLoading}
         />
 
