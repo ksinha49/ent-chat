@@ -33,10 +33,15 @@ class Settings:
     APP_LOGO: str = os.getenv("APP_LOGO", "/images/ameritas-logo.png")
 
     # Memory
-    LONG_TERM_DB_PATH: str = os.getenv(
-        "LONG_TERM_DB_PATH",
-        str(Path(__file__).with_name("memory") / "long_term.db"),
+    LONG_TERM_PATH: str = os.getenv(
+        "LONG_TERM_PATH",
+        os.getenv(
+            "LONG_TERM_DB_PATH",
+            str(Path(__file__).with_name("memory") / "long_term.db"),
+        ),
     )
+    # Backwards compatibility
+    LONG_TERM_DB_PATH: str = LONG_TERM_PATH
 
 
 settings = Settings()
