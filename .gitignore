@@ -1,0 +1,14 @@
+# Node.js dependencies
+node_modules/
+.next/
+
+# Python caches and virtual environments
+__pycache__/
+.venv/
+
+# Environment files
+.env
+
+# Misc
+.DS_Store
+.pytest_cache/
