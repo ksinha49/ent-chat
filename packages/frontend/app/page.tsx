@@ -24,6 +24,7 @@ import Sidebar from "@/components/chat/Sidebar"
 import ChatMessages from "@/components/chat/ChatMessages"
 import WelcomeScreen from "@/components/chat/WelcomeScreen"
 import ChatInputForm from "@/components/chat/ChatInputForm"
+import ErrorBoundary from "@/components/ErrorBoundary"
 
 /* ------------- Slide transition that always keeps node mounted -------- */
 
@@ -57,7 +58,7 @@ const logger = {
 
 /* ============================= PAGE =================================== */
 
-export default function Chat() {
+export function Chat() {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -299,5 +300,13 @@ export default function Chat() {
         </DialogActions>
       </Dialog>
     </Box>
+  )
+}
+
+export default function Page() {
+  return (
+    <ErrorBoundary>
+      <Chat />
+    </ErrorBoundary>
   )
 }
