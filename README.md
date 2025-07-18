@@ -29,6 +29,19 @@ pip install -r requirements.txt
 python main.py
 ```
 
+### Local build and run
+
+To install dependencies, build the frontend, and start both services, run
+`deploy_local.sh` on Linux or `deploy_local.bat` on Windows. The scripts
+create a Python virtual environment in `packages/backend/.venv` if needed:
+
+```bash
+./deploy_local.sh
+```
+
+The scripts launch the backend on port `8000` and the frontend on
+`http://localhost:3000`.
+
 ## Configuration
 
 Copy `.env.example` to `.env` and provide values for the following settings:
