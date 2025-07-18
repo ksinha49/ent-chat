@@ -51,7 +51,7 @@ Copy `.env.example` to `.env` and provide values for the following settings:
 - `ABACUS_BASE_URL` and `ABACUS_CLIENT_SECRET`
 - `VERIFY_SSL` (use `false` to allow self-signed certificates)
 - `NEXT_PUBLIC_API_URL` – URL of the backend for the frontend to call
-- Optional: `APP_NAME`, `APP_LOGO`, and `ALLOWED_ORIGINS`
+- Optional: `APP_NAME`, `APP_LOGO`, `ALLOWED_ORIGINS`, and `LONG_TERM_PATH`
 
 ## Features
 
@@ -67,4 +67,4 @@ Copy `.env.example` to `.env` and provide values for the following settings:
 Long-term memory is now stored in an SQLite database located at
 `packages/backend/memory/long_term.db` by default. Previous versions used a
 `long_term.json` file. The service will create the new database automatically.
-To use a custom location, set the `LONG_TERM_DB_PATH` environment variable.
+To use a custom location, set the `LONG_TERM_PATH` environment variable.

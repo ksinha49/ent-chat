@@ -50,7 +50,7 @@ class Orchestrator:
             self.client = AbacusClient()
             self.adapter = BedrockAdapter()
             self.short_memory = ShortTermMemory()
-            self.long_memory = SQLiteMemory(Path(settings.LONG_TERM_DB_PATH))
+            self.long_memory = SQLiteMemory(Path(settings.LONG_TERM_PATH))
             self._vector_model = self.__class__._vector_model
             self.index = self.__class__._index
             self.entries = self.__class__._entries
@@ -62,7 +62,7 @@ class Orchestrator:
         self.client = AbacusClient()
         self.adapter = BedrockAdapter()
         self.short_memory = ShortTermMemory()
-        self.long_memory = SQLiteMemory(Path(settings.LONG_TERM_DB_PATH))
+        self.long_memory = SQLiteMemory(Path(settings.LONG_TERM_PATH))
 
         if self.__class__._vector_model is None:
             self.__class__._vector_model = SentenceTransformer("all-MiniLM-L6-v2")
