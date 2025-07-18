@@ -1,0 +1,20 @@
+{
+  "suggestions": [
+    {
+      "title": "Compare technologies",
+      "prompt": "What are the key differences between using Kubernetes and Docker Swarm for container orchestration in a production environment?"
+    },
+    {
+      "title": "Check approved versions",
+      "prompt": "What is the currently approved version of Node.js for new backend services, and are there any migration plans for older services?"
+    },
+    {
+      "title": "Find best practices",
+      "prompt": "What are the Ameritas best practices for securing a public-facing API built with .NET Core?"
+    },
+    {
+      "title": "Ask about a process",
+      "prompt": "Can you outline the process for requesting a new software license for a development team?"
+    }
+  ]
+}
