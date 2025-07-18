@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.1] - 2025-07-11
 ### Added
-- `http://localhost:8000/ask` endpoint for streaming AI responses.
+- `/ask` endpoint for streaming AI responses (URL configurable via
+  `NEXT_PUBLIC_API_URL`).
 - FAQ page for common questions about using ABACUS.
 - Prompt suggestions loaded from `public/prompts.json`.
 
