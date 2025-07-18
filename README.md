@@ -34,6 +34,17 @@ Continue building your app on:
 3. Start the development server with `pnpm dev`
 4. Open `http://localhost:3000` in your browser
 
+## Backend Setup
+
+The Python backend lives in `packages/backend`.
+
+```bash
+cd packages/backend
+python3 -m venv .venv  # optional
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## How It Works
 
 1. Create and modify your project using [v0.dev](https://v0.dev)
