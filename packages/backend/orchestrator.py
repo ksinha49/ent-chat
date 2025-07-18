@@ -53,7 +53,12 @@ class _BedrockLLM(LLM):
         return "bedrock"
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs: Any) -> str:
-        return self.adapter.invoke(prompt)
+        messages = [{"role": "user", "content": prompt}]
+        data = self.adapter.create(self.adapter.model_id, messages)
+        try:
+            return data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as exc:
+            raise RuntimeError("Unexpected response structure from Bedrock API") from exc
 
 
 class Orchestrator:
@@ -200,7 +205,12 @@ class Orchestrator:
     def _llm_chain(self, query: str) -> str:
         """Run the query through the Bedrock LLM with the planner prompt."""
         prompt = f"{planner_system_prompt}\nUser query: {query}"
-        return self.adapter.invoke(prompt)
+        messages = [{"role": "user", "content": prompt}]
+        data = self.adapter.create(self.adapter.model_id, messages)
+        try:
+            return data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as exc:
+            raise RuntimeError("Unexpected response structure from Bedrock API") from exc
 
     def recommend_capability(self, query: str) -> str:
         """Return the ID of the capability most relevant to ``query``."""
