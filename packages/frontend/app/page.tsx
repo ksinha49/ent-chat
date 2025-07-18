@@ -1,7 +1,6 @@
 "use client"
 import React, { useState, useRef, useEffect, useCallback, type ReactElement } from "react"
 import Link from "next/link"
-import { useChat } from "@ai-sdk/react"
 
 import {
   AppBar,
@@ -72,29 +71,48 @@ export default function Chat() {
   /* -------- about dialog ---------- */
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false)
 
-  /* -------- chat state (ai-sdk) ---------- */
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } = useChat({
-    api: "/api/chat",
-    body: {
-      responseStyle: "techInquiry",
-    },
-    onFinish: () => {
-      setIsProcessing(false)
-    },
-    onError: (error) => {
+  /* -------- chat state ---------- */
+  const [messages, setMessages] = useState<{ id: string; role: string; content: string }[]>([])
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const question = input.trim()
+    if (!question) return
+
+    const userMessage = { id: `user-${Date.now()}`, role: "user", content: question }
+    setMessages((prev) => [...prev, userMessage])
+    setInput("")
+
+    setIsLoading(true)
+    setIsProcessing(true)
+    try {
+      const res = await fetch("http://localhost:8000/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      })
+      const data = await res.json()
+      const assistantMessage = { id: `assistant-${Date.now()}`, role: "assistant", content: data.answer }
+      setMessages((prev) => [...prev, assistantMessage])
+    } catch (error: any) {
       logger.error("Chat submission failed", error)
-      setIsProcessing(false)
-      // Append a custom error message to the chat
-      const errorId = `error-${Date.now()}`
       const errorMessage = {
-        id: errorId,
-        role: "system" as const, // Use 'system' role for error messages
+        id: `error-${Date.now()}`,
+        role: "system" as const,
         content: `I'm sorry, but I've encountered an issue. Please check your connection or try again later. \n\n**Error:** ${error.message}`,
       }
-      // Use a function to safely update messages based on the previous state
-      setMessages((prevMessages) => [...prevMessages, errorMessage])
-    },
-  })
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsProcessing(false)
+      setIsLoading(false)
+    }
+  }
 
   /* -------- misc ---------- */
   const queryHistory = messages.filter((m) => m.role === "user").map((m) => m.content)
@@ -231,10 +249,7 @@ export default function Chat() {
         <ChatInputForm
           input={input}
           onChange={handleInputChange}
-          onSubmit={(e) => {
-            setIsProcessing(true)
-            handleSubmit(e)
-          }}
+          onSubmit={handleSubmit}
           isProcessing={isProcessing}
           isLoading={isLoading}
         />
