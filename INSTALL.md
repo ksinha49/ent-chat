@@ -21,7 +21,7 @@ installing dependencies:
 ```bash
 cd packages/frontend
 pnpm install    # add --loglevel debug for detailed output
-pnpm dev
+pnpm dev        # use `pnpm --loglevel debug dev` for verbose logs
 ```
 
 Access the UI at `http://localhost:3000`.

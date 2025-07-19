@@ -35,7 +35,7 @@ before installing dependencies:
 ```bash
 cd packages/frontend
 pnpm install      # use `pnpm install --loglevel debug` for verbose logs
-pnpm dev
+pnpm dev          # use `pnpm --loglevel debug dev` for verbose logs
 ```
 
 Open `http://localhost:3000` in your browser.
