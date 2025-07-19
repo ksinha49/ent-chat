@@ -29,9 +29,12 @@ For a step‑by‑step installation guide see [INSTALL.md](INSTALL.md).
 
 ### Frontend
 
+Ensure you have **Node.js 18+** installed. Change into the frontend directory
+before installing dependencies:
+
 ```bash
 cd packages/frontend
-pnpm install
+pnpm install      # use `pnpm install --loglevel debug` for verbose logs
 pnpm dev
 ```
 
