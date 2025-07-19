@@ -15,9 +15,12 @@ contacting Bedrock so calls to AWS are direct.
 
 ## Frontend setup
 
+Ensure **Node.js 18+** is available. Change into the frontend directory before
+installing dependencies:
+
 ```bash
 cd packages/frontend
-pnpm install
+pnpm install    # add --loglevel debug for detailed output
 pnpm dev
 ```
 
